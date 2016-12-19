@@ -28,6 +28,8 @@ use Pod::Usage;
 
 Getopt::Long::Configure('bundling');
 
+my $VERSION = '20161219a';
+
 my $opt_uniq=0;    # filter out duplicates
 my $opt_diff=0;    # show only entries missing from either list (how they differ)
 my $opt_same=0;    # show only entries in both lists (how they are the same)
@@ -43,7 +45,8 @@ GetOptions(
     "left|l"    => \$opt_left,
     "h"         => sub { $opt_help = 1 },
     "help|man"  => sub { $opt_help = 2 },
-  ) || usage_and_exit("Error in command line arguments\n");
+    "version|v" => sub { print( STDERR "$VERSION\n" ); exit 1; }
+  ) || ( $opt_help = 1 );
 
 if ( $opt_help ) {
     pod2usage (
@@ -170,14 +173,6 @@ sub longest {
         }
     }
     return $longest;
-};
-
-sub usage_and_exit {
-    my $msg = shift(@_);
-    if ( $msg eq 'help' ) { $msg = '' };
-    my $program = (split('/',$0))[-1];
-    print( "${msg}usage: $program [--unique] [--bare] [--same|--diff|--left] <file_a> <file_b>\n" );
-    exit 1;
 };
 
 =pod
