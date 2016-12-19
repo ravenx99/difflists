@@ -22,29 +22,60 @@
 
 use strict;
 use warnings;
-use 5.010;
 use Getopt::Long;
 use List::MoreUtils qw(uniq);
+use Pod::Usage;
 
 Getopt::Long::Configure('bundling');
 
 my $opt_uniq=0;    # filter out duplicates
-my $opt_diff=0; # show only files missing from either list
-my $opt_both=0;    # show only files in both lists
+my $opt_diff=0;    # show only entries missing from either list (how they differ)
+my $opt_same=0;    # show only entries in both lists (how they are the same)
+my $opt_bare=0;    # don't show >< symbols
+my $opt_left=0;    # like diff, but only show entries from the left file, assumes --bare
+my $opt_help=0;
 
 GetOptions(
-    "diff|d"    => \$opt_diff,
     "unique|u"  => \$opt_uniq,
-    "both|b"    => \$opt_both,
-    "help|h"    => \&usage_and_exit,
+    "bare|b"    => \$opt_bare,
+    "same|s"    => \$opt_same,
+    "diff|d"    => \$opt_diff,
+    "left|l"    => \$opt_left,
+    "h"         => sub { $opt_help = 1 },
+    "help|man"  => sub { $opt_help = 2 },
   ) || usage_and_exit("Error in command line arguments\n");
 
-if ( @ARGV < 2 ) {
-    usage_and_exit("Need more arguments\n");
+if ( $opt_help ) {
+    pod2usage (
+        -verbose => $opt_help,
+        -exitval => 1,
+      );
 }
 
-if ( $opt_diff && $opt_both ) {
-    usage_and_exit("'diff' and 'both' are mutually exclusive\n");
+if ( @ARGV < 2 ) {
+    pod2usage(
+        -message => 'Need more arguments',
+        -verbose => 1,
+        -exitval => 1,
+      );
+}
+
+if ( $opt_diff + $opt_same + $opt_left > 1 ) {
+    pod2usage(
+        -message => "'--diff', '--same' and '--left' are mutually exclusive",
+        -verbose => 1,
+        -exitval => 1,
+      );
+}
+
+if ( $opt_left ) { $opt_bare = 1; }
+
+my $lt='<';
+my $gt='>';
+
+if ( $opt_bare ) {
+    $lt=' ';
+    $gt=' ';
 }
 
 my $listfile_a = shift(@ARGV);
@@ -64,18 +95,18 @@ while (( @list_a > 0 || $element_a ne '' ) && ( @list_b > 0 || $element_b ne '' 
     if ( $element_a eq '' ) { $element_a = shift(@list_a) }
     if ( $element_b eq '' ) { $element_b = shift(@list_b) }
     if ( $element_a lt $element_b ) {
-        if ( !$opt_both ) {
+        if ( !$opt_same ) {
             print_left( $element_a );
         }
         $element_a = '';
     } elsif ( $element_b lt $element_a ) {
-        if ( !$opt_both ) {
+        if ( !$opt_same && !$opt_left) {
             print_right( $element_b );
         }
         $element_b = '';
     } else {
-        if ( !$opt_diff ) {
-            print_both( $element_a, $element_b );
+        if ( !$opt_diff && !$opt_left ) {
+            print_same( $element_a, $element_b );
         }
         $element_a = $element_b = '';
     }
@@ -83,14 +114,14 @@ while (( @list_a > 0 || $element_a ne '' ) && ( @list_b > 0 || $element_b ne '' 
 
 while ( @list_a > 0 ) {
     my $element = shift( @list_a );
-    if ( !$opt_both ) {
+    if ( !$opt_same ) {
         print_left( $element );
     }
 }
 
-while ( @list_b > 0 ) {
+while ( @list_b > 0 && !$opt_left ) {
     my $element = shift( @list_b );
-    if ( !$opt_both ) {
+    if ( !$opt_same ) {
         print_right( $element );
     }
 }
@@ -111,17 +142,17 @@ sub readfile {
 };
 
 sub print_left {
-    printf( "%-${lwidth}s  <\n", $_[0] );
+    printf( "%-${lwidth}s  %s\n", $_[0], $lt );
 };
 
 sub print_right {
-    printf( "%-${lwidth}s  >  %s\n", '', $_[0] );
+    printf( "%-${lwidth}s  %s  %s\n", '', $gt, $_[0] );
 };
 
-sub print_both {
+sub print_same {
     my $l = shift(@_);
     my $r = shift(@_);
-    if ( $opt_both ) {
+    if ( $opt_same ) {
         print( "$l\n" );
     } else {
         printf( "%-${lwidth}s     %s\n", $l, $r );
@@ -145,6 +176,73 @@ sub usage_and_exit {
     my $msg = shift(@_);
     if ( $msg eq 'help' ) { $msg = '' };
     my $program = (split('/',$0))[-1];
-    print( "${msg}usage: $program [--unique] [--both|--diff] <file_a> <file_b>\n" );
+    print( "${msg}usage: $program [--unique] [--bare] [--same|--diff|--left] <file_a> <file_b>\n" );
     exit 1;
 };
+
+=pod
+
+=head1 NAME
+
+difflists - show differences between two lists
+
+=head1 SYNOPSIS
+
+difflists [--unique] [--bare] [--same|--diff|--left] F<file_a> F<file_b>
+
+difflists [-u] [-b] [-s|-d|-l] F<file_a> F<file_b>
+
+difflists --help    # for full documentation
+
+=head1 DESCRIPTION
+
+Show differences between two lists in a format like 'diff -y', but
+where every difference creates is a new line instead of attempting to
+find changes within a line. difflists sorts the incoming lists.
+
+=over 4
+
+=item -b, --bare
+
+don't show >< symbols
+
+=item -d, --diff
+
+show only entries missing from either list (only how they differ)
+
+=item -l, --left
+
+like --diff, but only show entries from the left file
+
+=item -s, --same
+
+show only entries that only occur in both lists (only how they are the same)
+
+=item -u, --unique
+
+exclude duplicates from the output
+
+=back
+
+The use of --diff, --left and --same are mutually exclusive.
+
+=head1 AUTHOR
+
+Carl Cravens - L<http://github.com/ravenx99>
+
+=head1 AVAILABILITY
+
+L<http://github.com/ravenx99/difflists>
+
+=head1 LICENSE
+
+B<Copyright 2016 Carl D Cravens>
+
+This program comes with NO WARRANTY, to the extent permitted by law.
+You may redistribute copies of this program under the terms of the GNU
+General Public License.  For more information about these matters, see
+the file named COPYING.
+
+=head1 SEE ALSO
+
+diff

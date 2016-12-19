@@ -1,68 +1,60 @@
-difflists
-=========
+# NAME
 
-**difflists** - show differences between two lists
+difflists - show differences between two lists
 
+# SYNOPSIS
 
-DESCRIPTION
------------
+difflists \[--unique\] \[--bare\] \[--same|--diff|--left\] `file_a` `file_b`
+
+difflists \[-u\] \[-b\] \[-s|-d|-l\] `file_a` `file_b`
+
+difflists --help    # for full documentation
+
+# DESCRIPTION
 
 Show differences between two lists in a format like 'diff -y', but
-where every difference is a new line instead of thinking a line has
-changed in place.  difflists sorts the incoming lists.
+where every difference creates is a new line instead of attempting to
+find changes within a line. difflists sorts the incoming lists.
 
+- -b, --bare
 
-DEPENDENCIES
-------------
+    don't show >< symbols
 
-Requires Perl >5.010.
+- -d, --diff
 
+    show only entries missing from either list (only how they differ)
 
-USAGE
------
+- -l, --left
 
-difflists [--unique] [--both|--diff] <file_a> <file_b>
+    like --diff, but only show entries from the left file
 
-Flags can be shortened to a single character and can be grouped,
-e.g. -ud.
+- -s, --same
 
---unique  filter our duplicate entries within each file individually
+    show only entries that only occur in both lists (only how they are the same)
 
---both    show only entries that occur in both lists
+- -u, --unique
 
---diff    show only entries that occur in one list
+    exclude duplicates from the output
 
-Use of --both and --diff are mutually exclusive.
+The use of --diff, --left and --same are mutually exclusive.
 
+# AUTHOR
 
-AUTHOR
-------
+Carl Cravens - [http://github.com/ravenx99](http://github.com/ravenx99)
 
-  Carl D Cravens <raven@phoenyx.net>
+# AVAILABILITY
 
+[http://github.com/ravenx99/difflists](http://github.com/ravenx99/difflists)
 
-LICENSE & COPYRIGHT
--------------------
+# LICENSE
 
 **Copyright 2016 Carl D Cravens**
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+This program comes with NO WARRANTY, to the extent permitted by law.
+You may redistribute copies of this program under the terms of the GNU
+General Public License.  For more information about these matters, see
+the file named COPYING.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+# SEE ALSO
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-------------------------------------------------------------------------
-
-VERSION: 0.0.4
-
-Source repo: <https://github.com/ravenx99/difflists/>
-
-------------------------------------------------------------------------
+diff
