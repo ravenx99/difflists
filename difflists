@@ -28,7 +28,7 @@ use Pod::Usage;
 
 Getopt::Long::Configure('bundling');
 
-my $VERSION = '20161220a';
+my $VERSION = '20161220b';
 
 my $opt_uniq=0;    # filter out duplicates
 my $opt_supp=0;    # suppress common entries (show how they differ)
@@ -145,7 +145,11 @@ sub readfile {
 };
 
 sub print_left {
-    printf( "%-${lwidth}s  %s\n", $_[0], $lt );
+    if ( $opt_left ) {
+        print( "$_[0]\n" );
+    } else {
+        printf( "%-${lwidth}s  %s\n", $_[0], $lt );
+    }
 };
 
 sub print_right {
