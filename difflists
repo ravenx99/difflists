@@ -28,21 +28,21 @@ use Pod::Usage;
 
 Getopt::Long::Configure('bundling');
 
-my $VERSION = '20161219a';
+my $VERSION = '20161220a';
 
 my $opt_uniq=0;    # filter out duplicates
-my $opt_diff=0;    # show only entries missing from either list (how they differ)
-my $opt_same=0;    # show only entries in both lists (how they are the same)
+my $opt_supp=0;    # suppress common entries (show how they differ)
+my $opt_comm=0;    # show only common entries (show how they are the same)
 my $opt_bare=0;    # don't show >< symbols
-my $opt_left=0;    # like diff, but only show entries from the left file, assumes --bare
+my $opt_left=0;    # like supp, but only show entries from the left file, assumes --bare
 my $opt_help=0;
 
 GetOptions(
-    "unique|u"  => \$opt_uniq,
-    "bare|b"    => \$opt_bare,
-    "same|s"    => \$opt_same,
-    "diff|d"    => \$opt_diff,
-    "left|l"    => \$opt_left,
+    "unique|u"                     => \$opt_uniq,
+    "bare|b"                       => \$opt_bare,
+    "common-lines|comm|c"          => \$opt_comm,
+    "suppress-common-lines|supp|s" => \$opt_supp,
+    "left|l"                       => \$opt_left,
     "h"         => sub { $opt_help = 1 },
     "help|man"  => sub { $opt_help = 2 },
     "version|v" => sub { print( STDERR "$VERSION\n" ); exit 1; }
@@ -63,7 +63,7 @@ if ( @ARGV < 2 ) {
       );
 }
 
-if ( $opt_diff + $opt_same + $opt_left > 1 ) {
+if ( $opt_supp + $opt_comm + $opt_left > 1 ) {
     pod2usage(
         -message => "'--diff', '--same' and '--left' are mutually exclusive",
         -verbose => 1,
@@ -98,17 +98,17 @@ while (( @list_a > 0 || $element_a ne '' ) && ( @list_b > 0 || $element_b ne '' 
     if ( $element_a eq '' ) { $element_a = shift(@list_a) }
     if ( $element_b eq '' ) { $element_b = shift(@list_b) }
     if ( $element_a lt $element_b ) {
-        if ( !$opt_same ) {
+        if ( !$opt_comm ) {
             print_left( $element_a );
         }
         $element_a = '';
     } elsif ( $element_b lt $element_a ) {
-        if ( !$opt_same && !$opt_left) {
+        if ( !$opt_comm && !$opt_left) {
             print_right( $element_b );
         }
         $element_b = '';
     } else {
-        if ( !$opt_diff && !$opt_left ) {
+        if ( !$opt_supp && !$opt_left ) {
             print_same( $element_a, $element_b );
         }
         $element_a = $element_b = '';
@@ -117,14 +117,14 @@ while (( @list_a > 0 || $element_a ne '' ) && ( @list_b > 0 || $element_b ne '' 
 
 while ( @list_a > 0 ) {
     my $element = shift( @list_a );
-    if ( !$opt_same ) {
+    if ( !$opt_comm ) {
         print_left( $element );
     }
 }
 
 while ( @list_b > 0 && !$opt_left ) {
     my $element = shift( @list_b );
-    if ( !$opt_same ) {
+    if ( !$opt_comm ) {
         print_right( $element );
     }
 }
@@ -155,7 +155,7 @@ sub print_right {
 sub print_same {
     my $l = shift(@_);
     my $r = shift(@_);
-    if ( $opt_same ) {
+    if ( $opt_comm ) {
         print( "$l\n" );
     } else {
         printf( "%-${lwidth}s     %s\n", $l, $r );
@@ -183,7 +183,7 @@ difflists - show differences between two lists
 
 =head1 SYNOPSIS
 
-difflists [--unique] [--bare] [--same|--diff|--left] F<file_a> F<file_b>
+difflists [--unique] [--bare] [--supp|--comm|--left] F<file_a> F<file_b>
 
 difflists [-u] [-b] [-s|-d|-l] F<file_a> F<file_b>
 
@@ -201,15 +201,15 @@ find changes within a line. difflists sorts the incoming lists.
 
 don't show >< symbols
 
-=item -d, --diff
+=item -s, --supp, --suppress-common-lines
 
 show only entries missing from either list (only how they differ)
 
 =item -l, --left
 
-like --diff, but only show entries from the left file
+only show entries from the left list that are not in the right (assumes --bare)
 
-=item -s, --same
+=item -c, --comm, --common-lines
 
 show only entries that only occur in both lists (only how they are the same)
 
