@@ -4,7 +4,7 @@ difflists - show differences between two lists
 
 # SYNOPSIS
 
-difflists \[--unique\] \[--bare\] \[--same|--diff|--left\] `file_a` `file_b`
+difflists \[--unique\] \[--bare\] \[--supp|--comm|--left\] `file_a` `file_b`
 
 difflists \[-u\] \[-b\] \[-s|-d|-l\] `file_a` `file_b`
 
@@ -20,15 +20,15 @@ find changes within a line. difflists sorts the incoming lists.
 
     don't show >< symbols
 
-- -d, --diff
+- -s, --supp, --suppress-common-lines
 
     show only entries missing from either list (only how they differ)
 
 - -l, --left
 
-    like --diff, but only show entries from the left file
+    only show entries from the left list that are not in the right (assumes --bare)
 
-- -s, --same
+- -c, --comm, --common-lines
 
     show only entries that only occur in both lists (only how they are the same)
 
@@ -36,7 +36,7 @@ find changes within a line. difflists sorts the incoming lists.
 
     exclude duplicates from the output
 
-The use of --diff, --left and --same are mutually exclusive.
+The use of --comm, --supp and --left are mutually exclusive.
 
 # AUTHOR
 

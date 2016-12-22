@@ -28,7 +28,7 @@ use Pod::Usage;
 
 Getopt::Long::Configure('bundling');
 
-my $VERSION = '20161220b';
+my $VERSION = '20161222a';
 
 my $opt_uniq=0;    # filter out duplicates
 my $opt_supp=0;    # suppress common entries (show how they differ)
@@ -40,8 +40,8 @@ my $opt_help=0;
 GetOptions(
     "unique|u"                     => \$opt_uniq,
     "bare|b"                       => \$opt_bare,
-    "common-lines|comm|c"          => \$opt_comm,
-    "suppress-common-lines|supp|s" => \$opt_supp,
+    "comm|c|common-lines"          => \$opt_comm,
+    "supp|s|suppress-common-lines" => \$opt_supp,
     "left|l"                       => \$opt_left,
     "h"         => sub { $opt_help = 1 },
     "help|man"  => sub { $opt_help = 2 },
@@ -65,7 +65,7 @@ if ( @ARGV < 2 ) {
 
 if ( $opt_supp + $opt_comm + $opt_left > 1 ) {
     pod2usage(
-        -message => "'--diff', '--same' and '--left' are mutually exclusive",
+        -message => "'--comm', '--supp' and '--left' are mutually exclusive",
         -verbose => 1,
         -exitval => 1,
       );
@@ -223,7 +223,7 @@ exclude duplicates from the output
 
 =back
 
-The use of --diff, --left and --same are mutually exclusive.
+The use of --comm, --supp and --left are mutually exclusive.
 
 =head1 AUTHOR
 
